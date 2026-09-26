@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cloud Task Manager</title>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #eef2f5; margin: 0; padding: 40px 20px; display: flex; justify-content: center; }
+        .container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.08); width: 100%; max-width: 500px; }
+        h2 { margin-top: 0; color: #2c3e50; text-align: center; }
+        .student-card { background: #e3f2fd; padding: 10px; border-radius: 8px; text-align: center; color: #0d47a1; font-weight: bold; margin-bottom: 20px; border: 1px solid #bbdefb; }
+        .input-group { display: flex; gap: 10px; margin-bottom: 20px; }
+        input[type="text"], select { padding: 10px; border: 1px solid #ccc; border-radius: 6px; outline: none; }
+        input[type="text"] { flex: 2; }
+        select { flex: 1; }
+        button { background: #28a745; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #218838; }
+        ul { list-style: none; padding: 0; margin: 0; }
+        li { background: #f8f9fa; padding: 12px; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #dee2e6; }
+        .badge { background: #17a2b8; color: white; padding: 3px 8px; border-radius: 12px; font-size: 12px; }
+        .del-btn { background: #dc3545; color: white; border: none; padding: 5px 10px; font-size: 12px; border-radius: 4px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Cloud Task Manager</h2>
+    <div class="student-card">
+        Name: Sheikh Sajid | Student ID: 2026512887
+    </div>
+
+    <div class="input-group">
+        <input type="text" id="taskTitle" placeholder="Enter new task...">
+        <select id="taskCategory">
+            <option value="Study">Study</option>
+            <option value="Work">Work</option>
+            <option value="Personal">Personal</option>
+        </select>
+        <button onclick="addTask()">Add</button>
+    </div>
+
+    <ul id="taskList"></ul>
+</div>
+
+<script>
+async function fetchTasks() {
+    const res = await fetch('/api/tasks');
+    const data = await res.json();
+    const list = document.getElementById('taskList');
+    list.innerHTML = '';
+    data.tasks.forEach(task => {
+        list.innerHTML += `
+            <li>
+                <span><strong>${task.title}</strong> <span class="badge">${task.category}</span></span>
+                <button class="del-btn" onclick="deleteTask(${task.id})">Delete</button>
+            </li>
+        `;
+    });
+}
+
+async function addTask() {
+    const title = document.getElementById('taskTitle').value;
+    const category = document.getElementById('taskCategory').value;
+    if(!title) return alert('Please enter a task title');
+
+    await fetch('/api/tasks', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ title, category })
+    });
+
+    document.getElementById('taskTitle').value = '';
+    fetchTasks();
+}
+
+async function deleteTask(id) {
+    await fetch(`/api/tasks/${id}`, { method: 'DELETE' });
+    fetchTasks();
+}
+
+fetchTasks();
+</script>
+
+</body>
+</html>
